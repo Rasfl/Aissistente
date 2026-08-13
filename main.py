@@ -6,27 +6,33 @@ from openai import OpenAI
 
 # dotenv part + Apikey
 def main() -> None:
+
+    # Parser with the user msg
+    parser = argparse.ArgumentParser(description="Aissistente")
+    parser.add_argument("user_prompt", type=str, help="User prompt")
+    parser.add_argument("--verbose", action="store_true", help="Ativar modo detalhado")
+    args = parser.parse_args()
+    #---
+
     load_dotenv()
 
-    messages: list[dict[str, str, str, object]] = [
-        {
-            "role": "user",
-            "content": args.user_prompt
-        }]
     # o uso do env_path é para que idependente onde o usuario esteja, ao rodar main.py, ele procura na pasta raiz de main.py
     api_key = os.environ.get("OPENROUTER_API_KEY")
     if not api_key:
         raise RuntimeError('OPENROUTER_API_KEY not set. Configure it in the environment or the expected dotenv file path.')
     # ---
-
-    # Parser with the user msg
-    parser = argparse.ArgumentParser(description="Aissistente")
-    parser.add_argument("user_prompt", type=str, help="User prompt")
-    args = parser.parse_args()
-    #---
     # OpenAi Class and configs
     client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key,)
+    messages: list[dict[str, str]] = [
+        {
+            "role": "user",
+            "content": args.user_prompt
+        }]
+    # ---
+    generate_content(client, messages, args)
 
+def generate_content(client:OpenAI, messages:list, args) -> None:
+    # Core function
     completion = client.chat.completions.create(
         model="deepseek/deepseek-v4-flash-0731",
         messages= messages
@@ -34,15 +40,13 @@ def main() -> None:
     # ---
 
     # tokenUsage to track the consumption from the AI Tokens, also raise RuntimeError if usage == None
-    def tokenUsage(completion) -> None:
-        if not completion.usage:
-            raise RuntimeError("Failed API request")
-        promptTokens: int = completion.usage.prompt_tokens
-        completionTokens: int = completion.usage.completion_tokens
-
-        print(f"Prompt tokens: {promptTokens}")
-        print(f"Response tokens: {completionTokens}")
-    tokenUsage(completion)
+    if not completion.usage:
+        raise RuntimeError("Failed API request")
+    
+    if args.verbose:
+        print(f"User prompt: {args.user_prompt}")
+        print(f"Prompt tokens: {completion.usage.prompt_tokens}")
+        print(f"Response tokens: {completion.usage.completion_tokens}")
     # ---
 
     print("Reponse:")
