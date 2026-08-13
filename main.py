@@ -24,6 +24,18 @@ def main() -> None:
             "content": "Why is Boot.dev such a great place to learn backend development? Use one paragraph maximum."},
         ],
     )
+
+    # tokenUsage to track the consumption from the AI Tokens, also raise RuntimeError if usage == None
+    def tokenUsage(completion) -> None:
+        if not completion.usage:
+            raise RuntimeError("Failed API request")
+        promptTokens: int = completion.usage.prompt_tokens
+        completionTokens: int = completion.usage.completion_tokens
+
+        print(f"Prompt tokens: {promptTokens}")
+        print(f"Response tokens: {completionTokens}")
+    tokenUsage(completion)
+
     print("Reponse:")
     print(completion.choices[0].message.content)
 
