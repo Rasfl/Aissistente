@@ -5,12 +5,22 @@ def get_files_info(working_directory: str, directory: str = ".") -> str:
         absolutePath = os.path.abspath(working_directory)
         targetDir = os.path.normpath(os.path.join(absolutePath, directory))
         validTargetDir = os.path.commonpath([absolutePath, targetDir]) == absolutePath
-        isDir = os.path.isdir(directory)
+        isDir = os.path.isdir(targetDir)
+        
         if not validTargetDir:
             return (f'Error: Cannot list "{directory}" as it is outside the permitted working directory')
         if not isDir:
             return (f'Error: "{directory}" is not a directory')
         else:
-            return f'Success: "{directory}" is within the working directory'
+            listDir = os.listdir(targetDir)
+
+            listResult: list[str] = []
+            for filesDir in listDir:
+                itemPath = os.path.join(targetDir, filesDir)
+                listResult.append(f"- {filesDir}: file_size={os.path.getsize(itemPath)} bytes, is_dir={os.path.isdir(itemPath)}")
+            result = ""
+            result = "\n".join(listResult)
+            return result
+        
     except Exception as e:
         print(f"Error: '{e}'")
