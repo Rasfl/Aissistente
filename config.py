@@ -1,0 +1,1 @@
+maxCharacters = 1000

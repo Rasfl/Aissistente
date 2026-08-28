@@ -17,7 +17,7 @@ def get_files_info(working_directory: str, directory: str = ".") -> str:
             listResult: list[str] = []
             for filesDir in listDir:
                 itemPath = os.path.join(targetDir, filesDir)
-                listResult.append(f"- {filesDir}: file_size={os.path.getsize(itemPath)} bytes, is_dir={os.path.isdir(itemPath)}")
+                listResult.append(f"- {filesDir}: file_size={os.path.getsize(itemPath)} bytes, is_dir={isDir}")
             result = ""
             result = "\n".join(listResult)
             return result
