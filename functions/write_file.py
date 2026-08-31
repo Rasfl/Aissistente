@@ -4,19 +4,20 @@ schema_write_file = {
     "type": "function",
     "function": {
         "name": "write_file",
-        "description": "Writes content to a specified file relative to the working directory",
+        "description": "Writes text content to a file, creating or overwriting it",
         "parameters": {
             "type": "object",
             "properties": {
                 "file_path": {
                     "type": "string",
-                    "description": "File path to write content to, relative to the working directory",
+                    "description": "Relative path of the file to write to",
                 },
                 "content": {
                     "type": "string",
-                    "description": "Content to write to the file",
+                    "description": "The string content to write into the file",
                 },
             },
+            "required": ["file_path", "content"],
         },
     },
 }

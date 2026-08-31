@@ -1,23 +1,23 @@
 import os
 from config import maxCharacters
 
-schema_get_files_content = {
+schema_get_file_content = {
     "type": "function",
     "function": {
-        "name": "get_files_content",
-        "description": "Retrieves the content of a specified file relative to the working directory",
+        "name": "get_file_content",
+        "description": "Reads and returns the contents of a specific file",
         "parameters": {
             "type": "object",
             "properties": {
                 "file_path": {
                     "type": "string",
-                    "description": "File path to retrieve content from, relative to the working directory",
+                    "description": "Relative path of the file to read",
                 },
             },
+            "required": ["file_path"],
         },
     },
 }
-
 def get_file_content(working_directory: str, file_path: str) -> str:
     try:
         absolutePath = os.path.abspath(working_directory)

@@ -3,7 +3,8 @@ import argparse
 
 from dotenv import load_dotenv
 from openai import OpenAI
-from config import system_prompt, available_functions
+from config import system_prompt
+from schema import available_functions
 import json
 
 # dotenv part + Apikey
@@ -51,13 +52,18 @@ def generate_content(client:OpenAI, messages:list, args) -> None:
         print(f"Response tokens: {completion.usage.completion_tokens}")
     # ---
 
-    print("Reponse:")
+    print("Response:")
+
     message = completion.choices[0].message
+
     if message.tool_calls:
         for tool_call in message.tool_calls:
             fuction_name = tool_call.function.name
             function_args = json.loads(tool_call.function.arguments or "{}")
             print(f"Calling function: {tool_call.function.name}({function_args})")
+    else:
+        print(message.content)
 
 if __name__ == "__main__":
     main()
+
