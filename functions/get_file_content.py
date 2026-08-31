@@ -1,9 +1,22 @@
 import os
-
-# import config:
-
 from config import maxCharacters
 
+schema_get_files_content = {
+    "type": "function",
+    "function": {
+        "name": "get_files_content",
+        "description": "Retrieves the content of a specified file relative to the working directory",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "file_path": {
+                    "type": "string",
+                    "description": "File path to retrieve content from, relative to the working directory",
+                },
+            },
+        },
+    },
+}
 
 def get_file_content(working_directory: str, file_path: str) -> str:
     try:
@@ -13,7 +26,7 @@ def get_file_content(working_directory: str, file_path: str) -> str:
         isFile = os.path.isfile(targetDir)
             
         if not validTargetDir:
-                return f'Error: Cannot list "{file_path}" as it is outside the permitted working directory'
+                return f'Error: Cannot access "{file_path}" as it is outside the permitted working directory'
         if not isFile:
                 return f'Error: "{file_path}" is not a directory'
         else:

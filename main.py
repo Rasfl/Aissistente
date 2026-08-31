@@ -3,6 +3,8 @@ import argparse
 
 from dotenv import load_dotenv
 from openai import OpenAI
+from config import system_prompt, available_functions
+import json
 
 # dotenv part + Apikey
 def main() -> None:
@@ -24,10 +26,10 @@ def main() -> None:
     # OpenAi Class and configs
     client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key,)
     messages: list[dict[str, str]] = [
-        {
-            "role": "user",
-            "content": args.user_prompt
-        }]
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": args.user_prompt},
+        ]
+    
     # ---
     generate_content(client, messages, args)
 
@@ -35,10 +37,10 @@ def generate_content(client:OpenAI, messages:list, args) -> None:
     # Core function
     completion = client.chat.completions.create(
         model="deepseek/deepseek-v4-flash-0731",
-        messages= messages
+        messages= messages,
+        tools=available_functions,
     )
     # ---
-
     # tokenUsage to track the consumption from the AI Tokens, also raise RuntimeError if usage == None
     if not completion.usage:
         raise RuntimeError("Failed API request")
@@ -50,7 +52,12 @@ def generate_content(client:OpenAI, messages:list, args) -> None:
     # ---
 
     print("Reponse:")
-    print(completion.choices[0].message.content)
+    message = completion.choices[0].message
+    if message.tool_calls:
+        for tool_call in message.tool_calls:
+            fuction_name = tool_call.function.name
+            function_args = json.loads(tool_call.function.arguments or "{}")
+            print(f"Calling function: {tool_call.function.name}({function_args})")
 
 if __name__ == "__main__":
     main()
