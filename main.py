@@ -1,11 +1,14 @@
 import os
 import argparse
+import json
+import sys
 
 from dotenv import load_dotenv
 from openai import OpenAI
-from config import system_prompt
+from config import system_prompt, maxIteration
 from call_function import available_functions, call_function
-import json
+
+
 
 # dotenv part + Apikey
 def main() -> None:
@@ -36,38 +39,45 @@ def main() -> None:
 
 def generate_content(client:OpenAI, messages:list, args) -> None:
     # Core function
-    completion = client.chat.completions.create(
-        model="deepseek/deepseek-v4-flash-0731",
-        messages= messages,
-        tools=available_functions,
-    )
-    # ---
-    # tokenUsage to track the consumption from the AI Tokens, also raise RuntimeError if usage == None
-    if not completion.usage:
-        raise RuntimeError("Failed API request")
-    
-    if args.verbose:
-        print(f"User prompt: {args.user_prompt}")
-        print(f"Prompt tokens: {completion.usage.prompt_tokens}")
-        print(f"Response tokens: {completion.usage.completion_tokens}")
-    # ---
+    for _ in range(maxIteration):
+        completion = client.chat.completions.create(
+            model="deepseek/deepseek-v4-flash-0731",
+            messages= messages,
+            tools=available_functions,
+        )
+        # ---
+        # tokenUsage to track the consumption from the AI Tokens, also raise RuntimeError if usage == None
+        if not completion.usage:
+            raise RuntimeError("Failed API request")
+        
+        if args.verbose:
+            print(f"User prompt: {args.user_prompt}")
+            print(f"Prompt tokens: {completion.usage.prompt_tokens}")
+            print(f"Response tokens: {completion.usage.completion_tokens}")
+        # ---
 
-    print("Response:")
+        message = completion.choices[0].message
+        messages.append(message)
 
-    message = completion.choices[0].message
+        if message.tool_calls:
+            for tool_call in message.tool_calls:
+                result_message = call_function(tool_call, verbose=args.verbose)
 
-    if message.tool_calls:
-        for tool_call in message.tool_calls:
-            result_message = call_function(tool_call, verbose=args.verbose)
+                if not result_message.get("content"):
+                    return f"Empty response from tool: {tool_call.function.name}"
 
-            if not result_message.get("content"):
-                return f"Empty response from tool: {tool_call.function.name}"
+                if args.verbose:
+                    print(f"-> {result_message['content']}")
 
-            if args.verbose:
-                print(f"-> {result_message['content']}")
-    
+                messages.append(result_message)
+        
+        else:
+            print("Response:")
+            print(message.content)
+            break
     else:
-        print(message.content)
+        print(f"Error: Reached maximum iterations ({maxIteration}).")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

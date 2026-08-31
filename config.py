@@ -1,5 +1,7 @@
 maxCharacters = 1000
 
+maxIteration = 20
+
 system_prompt = """
 You are a helpful AI coding agent.
 
